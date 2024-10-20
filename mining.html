@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bitcoin Mining Simulator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin-top: 50px;
+      }
+      #mined-message {
+        color: green;
+        font-weight: bold;
+      }
+      #error-message {
+        color: red;
+      }
+      #hash-result {
+        margin-top: 20px;
+      }
+      input[type="number"],
+      input[type="text"] {
+        width: 200px;
+        padding: 10px;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Mine a Bitcoin Block</h1>
+    <p>Guess the correct nonce to mine the block!</p>
+
+    <div>
+      <label for="nonce">Enter Nonce Guess:</label>
+      <input type="number" id="nonce" placeholder="Enter a number" />
+    </div>
+    <div>
+      <label for="difficulty"
+        >Enter Difficulty (number of leading zeros):</label
+      >
+      <input type="number" id="difficulty" placeholder="Enter difficulty" />
+    </div>
+    <div>
+      <label for="block-data">Enter Block Data:</label>
+      <input type="text" id="block-data" placeholder="Enter block data" />
+    </div>
+    <button onclick="mineBlock()">Mine Block</button>
+
+    <div id="hash-result"></div>
+    <div id="mined-message"></div>
+    <div id="error-message"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-sha256/0.9.0/sha256.min.js"></script>
+    <script>
+      function mineBlock() {
+        const nonce = document.getElementById("nonce").value;
+        const difficulty = document.getElementById("difficulty").value;
+        const blockData = document.getElementById("block-data").value;
+
+        if (!nonce || !difficulty || !blockData) {
+          document.getElementById("error-message").textContent =
+            "Please enter all fields.";
+          return;
+        }
+
+        const targetDifficulty = "0".repeat(difficulty);
+        console.log("Nonce:", nonce);
+        console.log("Difficulty:", difficulty);
+        console.log("Block Data:", blockData);
+        console.log("Target Difficulty:", targetDifficulty);
+
+        const hash = sha256(blockData + nonce); // hash block data + nonce
+        console.log("Hash:", hash);
+        document.getElementById("hash-result").textContent = `Hash: ${hash}`;
+        document.getElementById("error-message").textContent = "";
+
+        // check if the hash meets the difficulty requirement
+        if (hash.startsWith(targetDifficulty)) {
+          document.getElementById(
+            "mined-message"
+          ).textContent = `Success! Block mined with nonce: ${nonce}`;
+        } else {
+          document.getElementById("mined-message").textContent = "";
+        }
+      }
+    </script>
+  </body>
+</html>
