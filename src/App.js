@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import sha256 from 'js-sha256';
 import './App.css';
 
@@ -33,6 +33,20 @@ const BitcoinMiningSimulator = () => {
       setMinedMessage('');
     }
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Enter') {
+        mineBlock();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [nonce, difficulty, blockData]);
 
   return (
     <div style={{ padding: '20px' }}>
