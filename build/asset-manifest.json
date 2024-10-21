@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/jbrauck-unchained/bitcoin-miner/static/css/main.ce0fd44d.css",
+    "main.js": "/jbrauck-unchained/bitcoin-miner/static/js/main.fc4f0d62.js",
+    "index.html": "/jbrauck-unchained/bitcoin-miner/index.html",
+    "main.ce0fd44d.css.map": "/jbrauck-unchained/bitcoin-miner/static/css/main.ce0fd44d.css.map",
+    "main.fc4f0d62.js.map": "/jbrauck-unchained/bitcoin-miner/static/js/main.fc4f0d62.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.ce0fd44d.css",
+    "static/js/main.fc4f0d62.js"
+  ]
+}
