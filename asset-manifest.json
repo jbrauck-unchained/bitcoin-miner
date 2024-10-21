@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/bitcoin-miner/static/css/main.ce0fd44d.css",
-    "main.js": "/bitcoin-miner/static/js/main.fc4f0d62.js",
+    "main.js": "/bitcoin-miner/static/js/main.9c6357b8.js",
     "index.html": "/bitcoin-miner/index.html",
     "main.ce0fd44d.css.map": "/bitcoin-miner/static/css/main.ce0fd44d.css.map",
-    "main.fc4f0d62.js.map": "/bitcoin-miner/static/js/main.fc4f0d62.js.map"
+    "main.9c6357b8.js.map": "/bitcoin-miner/static/js/main.9c6357b8.js.map"
   },
   "entrypoints": [
     "static/css/main.ce0fd44d.css",
-    "static/js/main.fc4f0d62.js"
+    "static/js/main.9c6357b8.js"
   ]
 }
