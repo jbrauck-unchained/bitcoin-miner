@@ -40,7 +40,7 @@ const BitcoinMiningSimulator = () => {
       <p>Guess the correct nonce to mine the block!</p>
 
       <div style={{ padding: '10px' }}>
-        <label htmlFor="nonce">Enter Nonce Guess:</label>
+        <label htmlFor="nonce">Enter Nonce Guess: </label>
         <input
           type="number"
           id="nonce"
@@ -50,7 +50,7 @@ const BitcoinMiningSimulator = () => {
         />
       </div>
       <div style={{ padding: '10px' }}>
-        <label htmlFor="difficulty">Enter Difficulty (number of leading zeros):</label>
+        <label htmlFor="difficulty">Enter Difficulty (number of leading zeros): </label>
         <input
           type="number"
           id="difficulty"
@@ -60,7 +60,7 @@ const BitcoinMiningSimulator = () => {
         />
       </div>
       <div style={{ padding: '10px' }}>
-        <label htmlFor="block-data">Enter Block Data:</label>
+        <label htmlFor="block-data">Enter Block Data: </label>
         <input
           type="text"
           id="block-data"
