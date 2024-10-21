@@ -1,0 +1,26 @@
+/* BitcoinMiningSimulator.css */
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  margin-top: 50px;
+}
+#mined-message {
+  color: green;
+  font-weight: bold;
+}
+#error-message {
+  color: red;
+}
+#hash-result {
+  margin-top: 20px;
+}
+input[type="number"],
+input[type="text"] {
+  width: 200px;
+  padding: 10px;
+}
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  margin-top: 10px;
+}
