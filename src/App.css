@@ -1,0 +1,455 @@
+.App {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #2c3e50;
+}
+
+h1 {
+  text-align: center;
+  color: #3498db;
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  font-weight: 700;
+}
+
+h2 {
+  color: #2c3e50;
+  font-size: 1.8rem;
+  margin: 1.5rem 0;
+  font-weight: 600;
+}
+
+.mining-controls {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #34495e;
+}
+
+textarea {
+  width: 100%;
+  height: 100px;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+  background: #f8f9fa;
+  resize: vertical;
+  font-family: 'Roboto Mono', monospace;
+  color: #2c3e50;
+  letter-spacing: 0.5px;
+}
+
+textarea:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+input[type="number"] {
+  width: 80px;
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s;
+}
+
+input[type="number"]:focus {
+  border-color: #3498db;
+  outline: none;
+}
+
+button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.mine-button {
+  background-color: #3498db;
+  color: white;
+}
+
+.mine-button:hover {
+  background-color: #2980b9;
+  transform: translateY(-1px);
+}
+
+.stop-button {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.stop-button:hover {
+  background-color: #c0392b;
+  transform: translateY(-1px);
+}
+
+.mining-stats {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  padding: 2rem;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.5s ease;
+}
+
+.mining-stats.success {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  animation: successPulse 1.5s ease-in-out, successGlow 3s ease-in-out infinite;
+  box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+}
+
+.mining-stats.success h2 {
+  color: #1a472a;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mining-stats.success h2::after {
+  content: "₿";
+  font-size: 1.8rem;
+  animation: bitcoinSpin 3s ease-in-out infinite;
+  display: inline-block;
+  color: #f7931a; /* Bitcoin orange */
+  text-shadow: 0 0 10px rgba(247, 147, 26, 0.5);
+}
+
+@keyframes bitcoinSpin {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+    opacity: 1;
+  }
+}
+
+@keyframes successPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes successGlow {
+  0% {
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 25px rgba(46, 204, 113, 0.6);
+  }
+  100% {
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+  }
+}
+
+.mining-stats h2 {
+  display: flex;
+  align-items: center;
+  color: white;
+  margin-top: 0;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.hash {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: #2c3e50;
+  letter-spacing: 0.5px;
+  word-break: break-all;
+  display: inline-block;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.target {
+  font-family: 'Roboto Mono', monospace;
+  color: #f1c40f;
+}
+
+.blockchain {
+  margin-top: 2rem;
+}
+
+.block {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  position: relative;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.block:hover {
+  transform: translateY(-2px);
+}
+
+.block:not(:last-child)::after {
+  content: "↓";
+  position: absolute;
+  bottom: -1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5rem;
+  color: #3498db;
+}
+
+.block h3 {
+  margin: 0 0 1rem 0;
+  color: #3498db;
+  font-size: 1.4rem;
+}
+
+.block-info {
+  display: grid;
+  gap: 1rem;
+}
+
+.block-info div {
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.block-info strong {
+  color: #34495e;
+  margin-right: 0.5rem;
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-left: 10px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Style for hash values in mining stats */
+.mining-stats .hash {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ecf0f1;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Add hover effect to show full hash */
+.hash:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transition: background 0.3s ease;
+}
+
+.found-block {
+  animation: slideIn 0.5s ease-out;
+  position: relative;
+  padding-top: 10px;
+}
+
+.found-block::before {
+  content: "✓";
+  position: absolute;
+  top: -15px;
+  right: 10px;
+  font-size: 24px;
+  color: #fff;
+  background: #2ecc71;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  animation: checkmarkPop 0.5s ease-out;
+}
+
+@keyframes checkmarkPop {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.2) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.found-block .stat {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #2c3e50;
+}
+
+.found-block .stat span:first-child {
+  color: #1a472a;
+  font-weight: 600;
+}
+
+.found-block .hash {
+  background: rgba(255, 255, 255, 0.95);
+  color: #2c3e50;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Add container for Bitcoin celebration */
+.bitcoin-celebration {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+/* Bitcoin symbol animation */
+.bitcoin-symbol {
+  position: absolute;
+  color: #f7931a;
+  text-shadow: 0 0 10px rgba(247, 147, 26, 0.5);
+  transform-origin: center;
+  will-change: transform, opacity;
+  animation: explode 2s ease-out forwards;
+}
+
+@keyframes explode {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(var(--scale)) rotate(0deg);
+  }
+  100% {
+    transform: 
+      translate(
+        calc(-50% + var(--x)),
+        calc(-50% + var(--y))
+      )
+      scale(0)
+      rotate(var(--rotate));
+    opacity: 0;
+  }
+}
+
+/* Add trails to the Bitcoin symbols */
+.bitcoin-symbol::before {
+  content: '₿';
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0.3;
+  animation: trail 0.2s linear infinite;
+}
+
+@keyframes trail {
+  0% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1.1);
+    opacity: 0;
+  }
+}
+
+/* Add a flash effect when the celebration starts */
+.bitcoin-celebration {
+  animation: flash 0.5s ease-out;
+}
+
+@keyframes flash {
+  0% {
+    background-color: rgba(247, 147, 26, 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
