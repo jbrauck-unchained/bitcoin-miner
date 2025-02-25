@@ -225,6 +225,8 @@ button {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s;
   animation: fadeIn 0.5s ease-out;
+  border-left-width: 5px;
+  border-left-style: solid;
 }
 
 @keyframes fadeIn {
@@ -310,9 +312,29 @@ button {
 }
 
 .found-block {
-  animation: slideIn 0.5s ease-out;
+  border: 2px solid transparent;
   position: relative;
-  padding-top: 10px;
+}
+
+.miner-info {
+  position: absolute;
+  top: -30px;
+  right: 10px;
+  z-index: 1;
+}
+
+.miner-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.block {
+  border-left-width: 5px;
+  border-left-style: solid;
 }
 
 .found-block::before {
@@ -542,4 +564,151 @@ button {
   0% { opacity: 0.5; }
   50% { opacity: 1; }
   100% { opacity: 0.5; }
+}
+
+.miners-section {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+}
+
+.add-miner-button {
+  background-color: #34495e;
+  color: white;
+  margin-bottom: 15px;
+}
+
+.add-miner-button:hover {
+  background-color: #2c3e50;
+}
+
+.add-miner-button:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}
+
+.miners-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.miner {
+  position: relative;
+  padding: 15px;
+  border-radius: 12px;
+  color: white;
+  width: 150px;
+  text-align: center;
+  animation: minerAppear 0.3s ease-out;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.remove-miner-button {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  background: #e74c3c;
+  color: white;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0;
+}
+
+.miner:hover .remove-miner-button {
+  opacity: 1;
+}
+
+.remove-miner-button:hover {
+  background: #c0392b;
+  transform: scale(1.1);
+}
+
+.remove-miner-button:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.miner-icon {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.miner-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.miner-stats {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+@keyframes minerAppear {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.miners-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.miner-progress {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.miner-progress:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.miner-progress-header {
+  padding: 10px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: white;
+}
+
+.miner-progress-details {
+  padding: 15px;
+}
+
+.miner-progress .stat {
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 8px;
+}
+
+.mining-summary {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }

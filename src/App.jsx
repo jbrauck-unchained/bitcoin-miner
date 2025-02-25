@@ -55,6 +55,19 @@ function App() {
   const [transactionBuffer, setTransactionBuffer] = useState("");
   const MAX_CHARS = 1000;
   
+  // Add new state for miners
+  const [miners, setMiners] = useState([
+    {
+      id: 1,
+      name: "Miner 1",
+      color: "#3498db",
+      blocksFound: 0
+    }
+  ]);
+  
+  // Add new state for miner progress
+  const [minerProgress, setMinerProgress] = useState({});
+  
   useEffect(() => {
     const miningWorker = new Worker();
     setWorker(miningWorker);
@@ -95,22 +108,36 @@ function App() {
 
     if (worker) {
       worker.onmessage = (e) => {
-        const { type, hashCount, currentNonce, currentHash, hashRate, nonce, hash, finalData } = e.data;
+        const { type, hashCount, currentNonce, currentHash, hashRate, nonce, hash, finalData, minerId, minerStats } = e.data;
         
         if (type === 'progress') {
           setHashCount(hashCount);
           setCurrentNonce(currentNonce);
           setCurrentHash(currentHash);
           setHashRate(hashRate);
+          // Update individual miner progress
+          setMinerProgress(minerStats);
         } else if (type === 'success') {
+          // Find the successful miner
+          const successfulMiner = miners.find(m => m.id === minerId);
+          
           const newBlock = {
             index: newIndex,
             timestamp,
             data: finalData,
             previousHash,
             hash,
-            nonce
+            nonce,
+            minerName: successfulMiner.name,
+            minerColor: successfulMiner.color
           };
+          
+          // Update miner's block count
+          setMiners(prev => prev.map(miner => 
+            miner.id === minerId 
+              ? { ...miner, blocksFound: miner.blocksFound + 1 }
+              : miner
+          ));
           
           setFoundBlock(newBlock);
           
@@ -124,13 +151,15 @@ function App() {
         }
       };
 
+      // Send all miners to the worker
       worker.postMessage({
         type: 'start',
         index: newIndex,
         timestamp,
         data: newBlockData,
         previousHash,
-        difficulty
+        difficulty,
+        miners: miners // Pass all miners to the worker
       });
     }
   };
@@ -217,6 +246,46 @@ function App() {
     }
   }, [newBlockData, mining, worker]);
 
+  // Update the addMiner function to notify the worker
+  const addMiner = () => {
+    const colors = ["#e74c3c", "#2ecc71", "#f1c40f", "#9b59b6", "#e67e22"];
+    const newMiner = {
+      id: miners.length + 1,
+      name: `Miner ${miners.length + 1}`,
+      color: colors[miners.length % colors.length],
+      blocksFound: 0
+    };
+    setMiners(prev => {
+      const updatedMiners = [...prev, newMiner];
+      // If mining is in progress, update the worker with new miners list
+      if (mining && worker) {
+        worker.postMessage({
+          type: 'updateMiners',
+          miners: updatedMiners
+        });
+      }
+      return updatedMiners;
+    });
+  };
+
+  // Add removeMiner function
+  const removeMiner = (minerId) => {
+    // Don't allow removing the last miner
+    if (miners.length <= 1) return;
+    
+    setMiners(prev => {
+      const updatedMiners = prev.filter(m => m.id !== minerId);
+      // If mining is in progress, update the worker
+      if (mining && worker) {
+        worker.postMessage({
+          type: 'updateMiners',
+          miners: updatedMiners
+        });
+      }
+      return updatedMiners;
+    });
+  };
+
   return (
     <div className="App">
       <h1>Bitcoin Mining Simulator</h1>
@@ -279,55 +348,112 @@ function App() {
         ) : (
           <button onClick={stopMining} className="stop-button">Stop Mining</button>
         )}
+
+        <div className="miners-section">
+          <h3>Miners</h3>
+          <button 
+            onClick={addMiner} 
+            className="add-miner-button"
+            disabled={miners.length >= 5}
+          >
+            Add Miner
+          </button>
+          <div className="miners-container">
+            {miners.map(miner => (
+              <div 
+                key={miner.id}
+                className="miner"
+                style={{ backgroundColor: miner.color }}
+              >
+                <button 
+                  className="remove-miner-button"
+                  onClick={() => removeMiner(miner.id)}
+                  disabled={miners.length <= 1}
+                >
+                  ×
+                </button>
+                <div className="miner-icon">⛏️</div>
+                <div className="miner-name">{miner.name}</div>
+                <div className="miner-stats">
+                  Blocks Found: {miner.blocksFound}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
       
       {mining && (
         <div className={`mining-stats ${foundBlock ? 'success' : ''}`}>
-          <h2>
-            {foundBlock ? 'Block Found!' : 'Mining in Progress...'}
-            {!foundBlock && <div className="loading-spinner"></div>}
-          </h2>
-          
           {foundBlock ? (
-            <div className="found-block">
-              <div className="stat">
-                <span>Block Hash:</span>
-                <span className="hash">{foundBlock.hash}</span>
+            <>
+              <h2>Block Found!</h2>
+              <div className="found-block" style={{ borderColor: foundBlock.minerColor }}>
+                <div className="miner-info">
+                  <span className="miner-badge" style={{ backgroundColor: foundBlock.minerColor }}>
+                    {foundBlock.minerName}
+                  </span>
+                </div>
+                <div className="stat">
+                  <span>Block Hash:</span>
+                  <span className="hash">{foundBlock.hash}</span>
+                </div>
+                <div className="stat">
+                  <span>Nonce Found:</span>
+                  <span>{foundBlock.nonce}</span>
+                </div>
+                <div className="stat">
+                  <span>Timestamp:</span>
+                  <span>{new Date(parseInt(foundBlock.timestamp)).toLocaleString()}</span>
+                </div>
+                <div className="stat">
+                  <span>Total Hashes:</span>
+                  <span>{hashCount.toLocaleString()}</span>
+                </div>
               </div>
-              <div className="stat">
-                <span>Nonce Found:</span>
-                <span>{foundBlock.nonce}</span>
-              </div>
-              <div className="stat">
-                <span>Timestamp:</span>
-                <span>{new Date(parseInt(foundBlock.timestamp)).toLocaleString()}</span>
-              </div>
-              <div className="stat">
-                <span>Total Hashes:</span>
-                <span>{hashCount.toLocaleString()}</span>
-              </div>
-            </div>
+            </>
           ) : (
             <>
-              <div className="stat">
-                <span>Hashes Calculated:</span> 
-                <span>{hashCount.toLocaleString()}</span>
+              <h2>
+                Mining in Progress...
+                <div className="loading-spinner"></div>
+              </h2>
+              <div className="miners-progress">
+                {miners.map(miner => {
+                  const progress = minerProgress[miner.id] || {};
+                  return (
+                    <div 
+                      key={miner.id} 
+                      className="miner-progress"
+                      style={{ borderColor: miner.color }}
+                    >
+                      <div className="miner-progress-header" style={{ backgroundColor: miner.color }}>
+                        <span>{miner.name}</span>
+                        <span>{progress.hashRate?.toLocaleString() || 0} H/s</span>
+                      </div>
+                      <div className="miner-progress-details">
+                        <div className="stat">
+                          <span>Current Nonce:</span>
+                          <span>{progress.currentNonce || 0}</span>
+                        </div>
+                        <div className="stat">
+                          <span>Current Hash:</span>
+                          <span className="hash">{progress.currentHash || '...'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <div className="stat">
-                <span>Hash Rate:</span> 
-                <span>{hashRate.toLocaleString()} H/s</span>
-              </div>
-              <div className="stat">
-                <span>Current Nonce:</span> 
-                <span>{currentNonce}</span>
-              </div>
-              <div className="stat">
-                <span>Current Hash:</span> 
-                <span className="hash">{currentHash}</span>
-              </div>
-              <div className="stat">
-                <span>Target Pattern:</span> 
-                <span className="target">{'0'.repeat(difficulty)}...</span>
+              <div className="mining-summary">
+                <div className="stat">
+                  <span>Total Hashes:</span>
+                  <span>{hashCount.toLocaleString()}</span>
+                </div>
+                <div className="stat">
+                  <span>Target Pattern:</span>
+                  <span className="target">{'0'.repeat(difficulty)}...</span>
+                </div>
               </div>
             </>
           )}
@@ -339,7 +465,7 @@ function App() {
       <div className="blockchain">
         <h2>Blockchain</h2>
         {blockchain.map((block, index) => (
-          <div key={index} className="block">
+          <div key={index} className="block" style={{ borderLeft: `5px solid ${block.minerColor}` }}>
             <h3>Block #{block.index}</h3>
             <div className="block-info">
               <div><strong>Timestamp:</strong> {block.timestamp}</div>
@@ -347,6 +473,7 @@ function App() {
               <div><strong>Previous Hash:</strong> <span className="hash">{block.previousHash}</span></div>
               <div><strong>Hash:</strong> <span className="hash">{block.hash}</span></div>
               <div><strong>Nonce:</strong> {block.nonce}</div>
+              <div><strong>Mined by:</strong> {block.minerName}</div>
             </div>
           </div>
         ))}
