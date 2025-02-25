@@ -51,6 +51,9 @@ function App() {
   const [currentHash, setCurrentHash] = useState("");
   const [worker, setWorker] = useState(null);
   const [foundBlock, setFoundBlock] = useState(null);
+  const [nodes, setNodes] = useState([]);
+  const [transactionBuffer, setTransactionBuffer] = useState("");
+  const MAX_CHARS = 1000;
   
   useEffect(() => {
     const miningWorker = new Worker();
@@ -92,7 +95,7 @@ function App() {
 
     if (worker) {
       worker.onmessage = (e) => {
-        const { type, hashCount, currentNonce, currentHash, hashRate, nonce, hash } = e.data;
+        const { type, hashCount, currentNonce, currentHash, hashRate, nonce, hash, finalData } = e.data;
         
         if (type === 'progress') {
           setHashCount(hashCount);
@@ -103,7 +106,7 @@ function App() {
           const newBlock = {
             index: newIndex,
             timestamp,
-            data: newBlockData,
+            data: finalData,
             previousHash,
             hash,
             nonce
@@ -111,17 +114,18 @@ function App() {
           
           setFoundBlock(newBlock);
           
-          // Add block to blockchain after transition
           setTimeout(() => {
             setBlockchain(prev => [...prev, newBlock]);
             setFoundBlock(null);
             setNewBlockData("");
             setMining(false);
-          }, 8000); // Increased to 8 seconds total (3s original delay + 5s display time)
+            setNodes([]);
+          }, 8000);
         }
       };
 
       worker.postMessage({
+        type: 'start',
         index: newIndex,
         timestamp,
         data: newBlockData,
@@ -149,7 +153,70 @@ function App() {
       setDifficulty(parseInt(value));
     }
   };
-  
+
+  // Add function to generate random transaction data
+  const generateTransactionData = () => {
+    const transactions = [
+      "Alice sent 0.5 BTC to Bob",
+      "Charlie sent 1.2 BTC to David",
+      "Eve purchased 0.3 BTC",
+      "Frank transferred 0.8 BTC to Grace",
+      "Helen exchanged 2.1 BTC for USD",
+      "Igor sent 0.4 BTC to Julia"
+    ];
+    return transactions[Math.floor(Math.random() * transactions.length)];
+  };
+
+  // Add node data generation interval
+  useEffect(() => {
+    if (mining && nodes.length > 0) {
+      const intervals = nodes.map((node, index) => {
+        return setInterval(() => {
+          setTransactionBuffer(prev => {
+            const newData = `\n[Node ${node.id}]: ${generateTransactionData()}`;
+            const updatedData = prev + newData;
+            if (updatedData.length <= MAX_CHARS) {
+              return updatedData;
+            }
+            return prev;
+          });
+        }, 3000 / nodes.length); // Faster updates with more nodes
+      });
+
+      return () => {
+        intervals.forEach(interval => clearInterval(interval));
+      };
+    }
+  }, [mining, nodes]);
+
+  // Update transaction data when buffer changes
+  useEffect(() => {
+    if (transactionBuffer) {
+      setNewBlockData(prev => prev + transactionBuffer);
+      setTransactionBuffer("");
+    }
+  }, [transactionBuffer]);
+
+  // Add a new node
+  const addNode = () => {
+    const newNode = {
+      id: nodes.length + 1,
+      color: `hsl(${Math.random() * 360}, 70%, 50%)`
+    };
+    setNodes(prev => [...prev, newNode]);
+  };
+
+  // Update the worker message handler to send new data to the worker
+  useEffect(() => {
+    if (mining && worker) {
+      // Send updated data to worker whenever transaction data changes
+      worker.postMessage({
+        type: 'updateData',
+        data: newBlockData
+      });
+    }
+  }, [newBlockData, mining, worker]);
+
   return (
     <div className="App">
       <h1>Bitcoin Mining Simulator</h1>
@@ -157,14 +224,43 @@ function App() {
       <div className="mining-controls">
         <h2>Create a New Block</h2>
         <div className="form-group">
-          <label>Transaction Data:</label>
+          <label>Initial Transaction Data:</label>
           <textarea 
             value={newBlockData}
             onChange={(e) => setNewBlockData(e.target.value)}
-            placeholder="Enter transaction data here..."
+            placeholder="Enter initial transaction data here..."
             disabled={mining}
+            maxLength={MAX_CHARS}
           />
+          <div className="char-count">
+            {newBlockData.length} / {MAX_CHARS} characters
+          </div>
         </div>
+
+        {mining && (
+          <div className="nodes-control">
+            <button 
+              onClick={addNode}
+              className="add-node-button"
+              disabled={newBlockData.length >= MAX_CHARS}
+            >
+              Add Node
+            </button>
+            <div className="nodes-container">
+              {nodes.map(node => (
+                <div 
+                  key={node.id}
+                  className="node"
+                  style={{ backgroundColor: node.color }}
+                >
+                  <div className="node-icon">📱</div>
+                  <div className="node-label">Node {node.id}</div>
+                  <div className="node-status">Active</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         
         <div className="form-group">
           <label>Mining Difficulty (number of leading zeros):</label>

@@ -11,25 +11,46 @@ const hashMeetsDifficulty = (hash, difficulty) => {
   return hash.startsWith(requiredPrefix);
 };
 
-// Add sleep function for delay
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+let currentData = "";
+let isRunning = false;
+let miningParams = null;
 
 self.onmessage = async (e) => {
-  const { index, timestamp, data, previousHash, difficulty } = e.data;
+  const { type } = e.data;
+
+  if (type === 'start') {
+    // Start new mining process
+    isRunning = true;
+    miningParams = e.data;
+    currentData = miningParams.data;
+    startMining();
+  } else if (type === 'updateData') {
+    // Update the current data being mined
+    currentData = e.data.data;
+  } else if (type === 'stop') {
+    isRunning = false;
+  }
+};
+
+const startMining = async () => {
   let nonce = 0;
   let hash = "";
   let hashCounter = 0;
   const startTime = Date.now();
 
-  while (true) {
-    // Add a small delay for each hash calculation
-    await sleep(10);  // 10ms delay per hash
-
-    hash = calculateHash(index, timestamp, data, previousHash, nonce);
+  while (isRunning) {
+    // Use the current data which may have been updated
+    hash = calculateHash(
+      miningParams.index,
+      miningParams.timestamp,
+      currentData,
+      miningParams.previousHash,
+      nonce
+    );
     hashCounter++;
 
-    // Send progress update every 10 hashes
-    if (hashCounter % 10 === 0) {
+    // Send progress update every 100 hashes
+    if (hashCounter % 100 === 0) {
       self.postMessage({
         type: 'progress',
         hashCount: hashCounter,
@@ -39,19 +60,19 @@ self.onmessage = async (e) => {
       });
     }
 
-    if (hashMeetsDifficulty(hash, difficulty)) {
-      // Add extra delay before completing to ensure progress is visible
-      await sleep(1000);
-      
+    if (hashMeetsDifficulty(hash, miningParams.difficulty)) {
       self.postMessage({
         type: 'success',
         nonce,
         hash,
-        hashCount: hashCounter
+        hashCount: hashCounter,
+        finalData: currentData  // Send back the final data
       });
+      isRunning = false;
       return;
     }
 
     nonce++;
+    await new Promise(resolve => setTimeout(resolve, 10)); // Keep the delay for visualization
   }
 }; 
