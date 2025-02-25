@@ -68,6 +68,9 @@ function App() {
   // Add new state for miner progress
   const [minerProgress, setMinerProgress] = useState({});
   
+  // Add new state for simple nonce mode
+  const [simpleNonce, setSimpleNonce] = useState(false);
+  
   useEffect(() => {
     const miningWorker = new Worker();
     setWorker(miningWorker);
@@ -159,7 +162,8 @@ function App() {
         data: newBlockData,
         previousHash,
         difficulty,
-        miners: miners // Pass all miners to the worker
+        miners: miners,
+        simpleNonce // Pass the mode to worker
       });
     }
   };
@@ -341,6 +345,21 @@ function App() {
             onChange={handleDifficultyChange}
             disabled={mining}
           />
+        </div>
+        
+        <div className="form-group nonce-mode">
+          <label className="toggle-label">
+            <input 
+              type="checkbox"
+              checked={simpleNonce}
+              onChange={(e) => setSimpleNonce(e.target.checked)}
+              disabled={mining}
+            />
+            Simple Nonce Mode
+            <span className="tooltip">
+              ℹ️ When enabled, miners will guess nonces in order (1,2,3...) instead of random numbers
+            </span>
+          </label>
         </div>
         
         {!mining ? (
