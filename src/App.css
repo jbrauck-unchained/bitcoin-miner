@@ -786,3 +786,106 @@ button {
   margin-top: 8px;
   z-index: 1;
 }
+
+.pending-blocks {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+}
+
+.pending-blocks h3 {
+  margin-top: 0;
+  color: #34495e;
+}
+
+.pending-blocks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.pending-block {
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.pending-block-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.pending-block-data {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  background: #f8f9fa;
+  padding: 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mempool {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+}
+
+.mempool h3 {
+  margin-top: 0;
+  color: #34495e;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mempool h3::after {
+  content: "⏱️";
+  font-size: 1.2rem;
+}
+
+.mempool-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.mempool-stats div {
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 500;
+  color: #2c3e50;
+  text-align: center;
+  border: 1px solid #e0e0e0;
+}
+
+.mempool-preview h4 {
+  margin-bottom: 10px;
+  color: #34495e;
+}
+
+.mempool-data {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow-y: auto;
+}

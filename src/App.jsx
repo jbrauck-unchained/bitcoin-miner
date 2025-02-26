@@ -71,6 +71,10 @@ function App() {
   // Add new state for simple nonce mode
   const [simpleNonce, setSimpleNonce] = useState(false);
   
+  // Add new state for continuous mode and pending blocks
+  const [continuousMode, setContinuousMode] = useState(false);
+  const [mempool, setMempool] = useState("");
+  
   useEffect(() => {
     const miningWorker = new Worker();
     setWorker(miningWorker);
@@ -91,6 +95,127 @@ function App() {
     return hash.startsWith(requiredPrefix);
   };
   
+  // Create a reusable function to set up worker message handlers
+  const setupWorkerMessageHandler = (worker, blockIndex, prevHash) => {
+    console.log(`Setting up handler for block #${blockIndex} with prevHash ${prevHash.substring(0, 6)}...`);
+    
+    worker.onmessage = (e) => {
+      const { type, hashCount, currentNonce, currentHash, hashRate, nonce, hash, finalData, minerId, minerStats } = e.data;
+      
+      if (type === 'progress') {
+        setHashCount(hashCount);
+        setCurrentNonce(currentNonce);
+        setCurrentHash(currentHash);
+        setHashRate(hashRate);
+        setMinerProgress(minerStats);
+      } else if (type === 'success') {
+        console.log(`Block #${blockIndex} found by ${minerId}, preparing next block...`);
+        const successfulMiner = miners.find(m => m.id === minerId);
+        
+        const newBlock = {
+          index: blockIndex,
+          timestamp: Date.now().toString(),
+          data: finalData,
+          previousHash: prevHash,
+          hash,
+          nonce,
+          minerName: successfulMiner?.name || 'Unknown Miner',
+          minerColor: successfulMiner?.color || '#999999'
+        };
+        
+        // Update miner's block count
+        setMiners(prev => prev.map(miner => 
+          miner.id === minerId 
+            ? { ...miner, blocksFound: miner.blocksFound + 1 }
+            : miner
+        ));
+        
+        setFoundBlock(newBlock);
+        
+        // Use a shorter timeout for continuous mode
+        const timeoutDuration = continuousMode ? 3000 : 8000;
+        
+        setTimeout(() => {
+          console.log(`Adding block #${blockIndex} to blockchain...`);
+          setBlockchain(prev => [...prev, newBlock]);
+          
+          // Check mempool immediately
+          handleNextBlock(newBlock);
+        }, timeoutDuration);
+      }
+    };
+  };
+  
+  // Create a separate function to handle the next block
+  const handleNextBlock = (currentBlock) => {
+    // If we're in continuous mode, continue mining even if mempool is empty
+    if (continuousMode) {
+      // Use a functional update to get the latest mempool state
+      setMempool(currentMempool => {
+        console.log(`Continuous mode active, mempool has ${currentMempool.length} chars`);
+        
+        let nextBlockData = "";
+        let remainingMempool = "";
+        
+        // Take up to MAX_CHARS from mempool for next block
+        if (currentMempool.length > 0) {
+          // Only take up to MAX_CHARS
+          nextBlockData = currentMempool.slice(0, MAX_CHARS);
+          remainingMempool = currentMempool.slice(MAX_CHARS);
+          
+          console.log(`Taking ${nextBlockData.length} chars for next block, leaving ${remainingMempool.length} in mempool`);
+        } else {
+          console.log(`No data in mempool yet, continuing with empty block`);
+        }
+        
+        // Update the block data with the next chunk from mempool
+        setNewBlockData(nextBlockData);
+        
+        // Create a new worker to avoid issues with the previous one
+        if (worker) {
+          worker.terminate();
+        }
+        
+        const newWorker = new Worker();
+        
+        // Set up the new worker with a small delay to ensure state updates
+        setTimeout(() => {
+          // Log the current state to verify
+          console.log(`Starting new worker for block #${currentBlock.index + 1} with ${nextBlockData.length} chars of data`);
+          const nextBlockIndex = currentBlock.index + 1;
+          const nextBlockPrevHash = currentBlock.hash;
+          
+          // Set up the new worker with the same message handler
+          setupWorkerMessageHandler(newWorker, nextBlockIndex, nextBlockPrevHash);
+          setWorker(newWorker);
+          
+          newWorker.postMessage({
+            type: 'start',
+            index: nextBlockIndex,
+            timestamp: Date.now().toString(),
+            data: nextBlockData,
+            previousHash: nextBlockPrevHash,
+            difficulty,
+            miners,
+            simpleNonce,
+            continuousMode
+          });
+        }, 500); // Increased delay to ensure state updates
+        
+        // Return the remaining mempool to update the state
+        return remainingMempool;
+      });
+      
+      setFoundBlock(null); // Clear found block immediately
+    } else {
+      console.log("Not in continuous mode, stopping mining");
+      setFoundBlock(null);
+      setNewBlockData("");
+      setMining(false);
+      setNodes([]);
+    }
+  };
+  
   // Mine a new block
   const mineBlock = async () => {
     if (newBlockData.trim() === "") {
@@ -98,7 +223,11 @@ function App() {
       return;
     }
     
-    setMining(true);
+    // If not already mining, set mining state
+    if (!mining) {
+      setMining(true);
+    }
+    
     setHashCount(0);
     setCurrentHash("");
     setCurrentNonce(0);
@@ -110,51 +239,9 @@ function App() {
     const previousHash = lastBlock.hash;
 
     if (worker) {
-      worker.onmessage = (e) => {
-        const { type, hashCount, currentNonce, currentHash, hashRate, nonce, hash, finalData, minerId, minerStats } = e.data;
-        
-        if (type === 'progress') {
-          setHashCount(hashCount);
-          setCurrentNonce(currentNonce);
-          setCurrentHash(currentHash);
-          setHashRate(hashRate);
-          // Update individual miner progress
-          setMinerProgress(minerStats);
-        } else if (type === 'success') {
-          // Find the successful miner
-          const successfulMiner = miners.find(m => m.id === minerId);
-          
-          const newBlock = {
-            index: newIndex,
-            timestamp,
-            data: finalData,
-            previousHash,
-            hash,
-            nonce,
-            minerName: successfulMiner.name,
-            minerColor: successfulMiner.color
-          };
-          
-          // Update miner's block count
-          setMiners(prev => prev.map(miner => 
-            miner.id === minerId 
-              ? { ...miner, blocksFound: miner.blocksFound + 1 }
-              : miner
-          ));
-          
-          setFoundBlock(newBlock);
-          
-          setTimeout(() => {
-            setBlockchain(prev => [...prev, newBlock]);
-            setFoundBlock(null);
-            setNewBlockData("");
-            setMining(false);
-            setNodes([]);
-          }, 8000);
-        }
-      };
-
-      // Send all miners to the worker
+      // Use the outer setupWorkerMessageHandler function
+      setupWorkerMessageHandler(worker, newIndex, previousHash);
+      
       worker.postMessage({
         type: 'start',
         index: newIndex,
@@ -162,8 +249,9 @@ function App() {
         data: newBlockData,
         previousHash,
         difficulty,
-        miners: miners,
-        simpleNonce // Pass the mode to worker
+        miners,
+        simpleNonce,
+        continuousMode
       });
     }
   };
@@ -200,7 +288,7 @@ function App() {
     return transactions[Math.floor(Math.random() * transactions.length)];
   };
 
-  // Add node data generation interval
+  // Update the node data generation interval
   useEffect(() => {
     if (mining && nodes.length > 0) {
       const intervals = nodes.map((node, index) => {
@@ -208,6 +296,13 @@ function App() {
           setTransactionBuffer(prev => {
             const newData = `\n[Node ${node.id}]: ${generateTransactionData()}`;
             const updatedData = prev + newData;
+            
+            // In continuous mode, always add the data
+            if (continuousMode) {
+              return updatedData;
+            }
+            
+            // In non-continuous mode, only add if under limit
             if (updatedData.length <= MAX_CHARS) {
               return updatedData;
             }
@@ -220,15 +315,45 @@ function App() {
         intervals.forEach(interval => clearInterval(interval));
       };
     }
-  }, [mining, nodes]);
+  }, [mining, nodes, continuousMode]);
 
-  // Update transaction data when buffer changes
+  // Update the transaction buffer effect to use mempool
   useEffect(() => {
     if (transactionBuffer) {
-      setNewBlockData(prev => prev + transactionBuffer);
+      if (continuousMode) {
+        // In continuous mode, check if current block is full
+        if (newBlockData.length >= MAX_CHARS) {
+          // Current block is full, add to mempool
+          setMempool(prev => prev + transactionBuffer);
+        } else {
+          // Current block has space, fill it up to MAX_CHARS
+          const spaceLeft = MAX_CHARS - newBlockData.length;
+          
+          if (transactionBuffer.length <= spaceLeft) {
+            // Buffer fits entirely in current block
+            setNewBlockData(prev => prev + transactionBuffer);
+          } else {
+            // Split the buffer between current block and mempool
+            const forCurrentBlock = transactionBuffer.slice(0, spaceLeft);
+            const forMempool = transactionBuffer.slice(spaceLeft);
+            
+            setNewBlockData(prev => prev + forCurrentBlock);
+            setMempool(prev => prev + forMempool);
+          }
+        }
+      } else {
+        // In non-continuous mode, just add to current block up to MAX_CHARS
+        setNewBlockData(prev => {
+          if (prev.length + transactionBuffer.length <= MAX_CHARS) {
+            return prev + transactionBuffer;
+          }
+          return prev.slice(0, MAX_CHARS);
+        });
+      }
+      
       setTransactionBuffer("");
     }
-  }, [transactionBuffer]);
+  }, [transactionBuffer, continuousMode, newBlockData.length]);
 
   // Add a new node
   const addNode = () => {
@@ -315,7 +440,7 @@ function App() {
             <button 
               onClick={addNode}
               className="add-node-button"
-              disabled={newBlockData.length >= MAX_CHARS}
+              disabled={!continuousMode && newBlockData.length >= MAX_CHARS}
             >
               Add Node
             </button>
@@ -358,6 +483,21 @@ function App() {
             Simple Nonce Mode
             <span className="tooltip">
               ℹ️ When enabled, miners will guess nonces in order (1,2,3...) instead of random numbers
+            </span>
+          </label>
+        </div>
+        
+        <div className="form-group nonce-mode">
+          <label className="toggle-label">
+            <input 
+              type="checkbox"
+              checked={continuousMode}
+              onChange={(e) => setContinuousMode(e.target.checked)}
+              disabled={mining}
+            />
+            Continuous Mining Mode
+            <span className="tooltip">
+              ℹ️ When enabled, excess transactions will automatically form new blocks to be mined
             </span>
           </label>
         </div>
@@ -497,6 +637,24 @@ function App() {
           </div>
         ))}
       </div>
+      
+      {continuousMode && mempool.length > 0 && (
+        <div className="mempool">
+          <h3>Mempool</h3>
+          <div className="mempool-stats">
+            <div>Pending Transactions: {mempool.split('\n').filter(line => line.trim()).length}</div>
+            <div>Total Size: {mempool.length} characters</div>
+            <div>Estimated Blocks: {Math.ceil(mempool.length / MAX_CHARS)}</div>
+          </div>
+          <div className="mempool-preview">
+            <h4>Preview:</h4>
+            <div className="mempool-data">
+              {mempool.slice(0, 200)}
+              {mempool.length > 200 && '...'}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
